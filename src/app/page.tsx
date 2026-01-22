@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useChat, useMastraClient } from "@mastra/react";
 import {
     Send, User, Bot, Loader2, BookOpen,
@@ -244,9 +244,49 @@ export default function ChatPage() {
         return '';
     };
 
-    // Render text with markdown-style bold parsing
-    const renderFormattedText = (text: string, isUser: boolean) => {
-        // Split by **text** pattern and render bold
+    // Render text with markdown parsing (headings, bold, lists)
+    const renderFormattedText = (line: string, isUser: boolean): React.ReactNode => {
+        // Handle headings (### Heading or ###Heading)
+        if (line.match(/^###\s*.+/)) {
+            const text = line.replace(/^###\s*/, '');
+            return <h4 className="font-bold text-[#1a4480] text-base mt-3 mb-1">{text}</h4>;
+        }
+        if (line.match(/^##\s*.+/)) {
+            const text = line.replace(/^##\s*/, '');
+            return <h3 className="font-bold text-[#1a4480] text-lg mt-3 mb-1">{text}</h3>;
+        }
+        if (line.match(/^#\s*.+/)) {
+            const text = line.replace(/^#\s*/, '');
+            return <h2 className="font-bold text-[#1a4480] text-xl mt-3 mb-1">{text}</h2>;
+        }
+
+        // Handle numbered lists (e.g., "1. ", "2. ")
+        const numberedMatch = line.match(/^(\d+)\.\s+(.*)$/);
+        if (numberedMatch) {
+            return (
+                <div className="flex gap-2 mt-2">
+                    <span className={`font-semibold ${isUser ? 'text-white' : 'text-[#1a4480]'}`}>{numberedMatch[1]}.</span>
+                    <span>{renderBoldText(numberedMatch[2], isUser)}</span>
+                </div>
+            );
+        }
+
+        // Handle bullet points
+        if (line.startsWith('- ') || line.startsWith('• ')) {
+            return (
+                <div className="flex gap-2 mt-1 ml-2">
+                    <span className={isUser ? 'text-white' : 'text-[#1a4480]'}>•</span>
+                    <span>{renderBoldText(line.slice(2), isUser)}</span>
+                </div>
+            );
+        }
+
+        // Regular text with bold parsing
+        return <span>{renderBoldText(line, isUser)}</span>;
+    };
+
+    // Parse **bold** text
+    const renderBoldText = (text: string, isUser: boolean): React.ReactNode => {
         const parts = text.split(/(\*\*[^*]+\*\*)/g);
         return parts.map((part, i) => {
             if (part.startsWith('**') && part.endsWith('**')) {
@@ -503,9 +543,9 @@ export default function ChatPage() {
                                                     message.role === "user" ? "text-white" : "text-[#202124]"
                                                 )}>
                                                     {getMessageText(message).split('\n').map((line: string, idx: number) => (
-                                                        <p key={idx} className={idx > 0 ? "mt-3" : ""}>
+                                                        <div key={idx} className={idx > 0 ? "mt-3" : ""}>
                                                             {renderFormattedText(line, message.role === "user")}
-                                                        </p>
+                                                        </div>
                                                     ))}
                                                 </div>
 
