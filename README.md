@@ -2,9 +2,11 @@
 
 An AI-powered RAG (Retrieval-Augmented Generation) application that intelligently answers questions about Warren Buffett's investment philosophy using Berkshire Hathaway shareholder letters from 1977-2024.
 
+**🌐 Live Demo:** [https://berkshire-hathaway-intelligence.onrender.com](https://berkshire-hathaway-intelligence.onrender.com)
+
 ## 🚀 Features
 
-- **RAG Pipeline**: Semantic search across 6 years of shareholder letters (2019-2024)
+- **RAG Pipeline**: Semantic search across shareholder letters (1977-2024)
 - **Streaming Responses**: Real-time AI responses with character-by-character streaming
 - **Source Attribution**: Automatic citation of letter years used in responses
 - **Conversation Memory**: Persistent chat history with context preservation
@@ -15,40 +17,14 @@ An AI-powered RAG (Retrieval-Augmented Generation) application that intelligentl
 
 ```mermaid
 flowchart TB
-    subgraph Frontend["🖥️ Frontend (Next.js)"]
-        UI[Chat Interface]
-        Stream[Streaming Handler]
-        Memory[Conversation Display]
-    end
-
-    subgraph Mastra["⚡ Mastra Backend"]
-        Agent[Berkshire Agent<br/>GPT-4o]
-        RAG[RAG Tool]
-        MemoryStore[Memory System]
-    end
-
-    subgraph Storage["💾 Storage Layer"]
-        PG[(PostgreSQL<br/>pgvector)]
-        LibSQL[(LibSQL<br/>Conversations)]
-    end
-
-    subgraph Data["📄 Data Pipeline"]
-        PDF[Shareholder Letters<br/>1977-2024]
-        Embed[OpenAI Embeddings]
-    end
-
-    UI --> |User Query| Agent
-    Agent --> |Semantic Search| RAG
-    RAG --> |Vector Query| PG
-    PG --> |Relevant Chunks| RAG
-    RAG --> |Context| Agent
-    Agent --> |Streaming Response| Stream
-    Stream --> |Display| Memory
-    Agent --> |Save Thread| MemoryStore
-    MemoryStore --> LibSQL
-
-    PDF --> |Ingest & Chunk| Embed
-    Embed --> |Store Vectors| PG
+    UI[Chat Interface] --> Agent[Berkshire Agent]
+    Agent --> RAG[RAG Retrieval Tool]
+    RAG --> PG[(PostgreSQL + pgvector)]
+    Agent --> Memory[Memory System]
+    Memory --> LibSQL[(LibSQL Storage)]
+    PDF[Shareholder Letters] --> Ingest[Ingest Pipeline]
+    Ingest --> Embed[OpenAI Embeddings]
+    Embed --> PG
 ```
 
 ### Data Flow
@@ -60,13 +36,31 @@ flowchart TB
 5. **Streaming Response** → Real-time character-by-character display
 6. **Memory Persistence** → Conversation saved for continuity
 
-## 📋 Prerequisites
+## 📦 Deployment (Render)
 
-- Node.js 18+
-- OpenAI API Key
-- npm or yarn
+The application is deployed on **Render** using a multi-service architecture:
 
-## 🛠️ Installation
+### 1. Database Setup
+- **Service**: Render Managed PostgreSQL
+- **Extension**: `pgvector` enabled via `CREATE EXTENSION IF NOT EXISTS vector;`
+- **Location**: Singapore (AWS)
+
+### 2. Web Service Configuration
+- **Runtime**: Node.js 22+
+- **Build Command**: `npm install --include=dev && npm run build`
+- **Start Command**: `npm run start:all` (Starts both Mastra backend and Next.js frontend)
+- **Environment Variables**:
+  - `DATABASE_URL`: Connection string to PostgreSQL
+  - `OPENAI_API_KEY`: API key for GPT-4o and Text Embeddings
+  - `NODE_ENV`: `production`
+
+### 3. Data Ingestion
+- Documents were ingested into the production database using a local script pointed at the Render database URL:
+  ```bash
+  DATABASE_URL=postgres://... npm run ingest
+  ```
+
+## 🛠️ Local Installation
 
 1. **Clone the repository**
    ```bash
@@ -81,19 +75,17 @@ flowchart TB
 
 3. **Configure environment**
    ```bash
-   # Create .env file
-   cp .env.example .env
-   
-   # Add your OpenAI API key
+   # Create .env file and add your OpenAI API key and DATABASE_URL
    OPENAI_API_KEY=your-api-key-here
+   DATABASE_URL=postgres://localhost:5432/mastra
    ```
 
 4. **Ingest shareholder letters**
    ```bash
-   npx tsx src/scripts/ingest-documents.ts
+   npm run ingest
    ```
 
-## 🚀 Running the Application
+## 🚀 Running Locally
 
 Start both the Mastra backend and Next.js frontend:
 
@@ -101,10 +93,8 @@ Start both the Mastra backend and Next.js frontend:
 npm run dev:all
 ```
 
-Access the application:
 - **Frontend**: [http://localhost:3000](http://localhost:3000)
 - **Mastra Studio**: [http://localhost:4111](http://localhost:4111)
-- **API**: [http://localhost:4111/api](http://localhost:4111/api)
 
 ## 📁 Project Structure
 
@@ -113,28 +103,19 @@ berkshire-hathaway-intelligence/
 ├── src/
 │   ├── app/                    # Next.js frontend
 │   │   ├── page.tsx            # Main chat interface
-│   │   ├── layout.tsx          # App layout
-│   │   └── globals.css         # Global styles
-│   ├── components/
-│   │   └── MastraProvider.tsx  # Mastra client provider
 │   ├── mastra/
 │   │   ├── agents/             # AI agents
 │   │   ├── tools/              # RAG retrieval tool
 │   │   ├── index.ts            # Mastra configuration
 │   │   ├── storage.ts          # Persistent storage
-│   │   └── vector-store.ts     # Vector database
+│   │   └── vector-store.ts     # Vector database (pgvector)
 │   └── scripts/
 │       └── ingest-documents.ts # Document ingestion script
-├── Berkshire_Hathaway_Shareholder_Letters/  # Source documents
-└── TESTING_DEPLOYMENT.md       # Testing & deployment guide
 ```
 
 ## 🧪 Testing
 
-See [TESTING_DEPLOYMENT.md](./TESTING_DEPLOYMENT.md) for comprehensive testing instructions.
-
 ### Quick Test Queries:
-
 1. "What is Warren Buffett's investment philosophy?"
 2. "What companies did Berkshire acquire in 2023?"
 3. "What are Buffett's views on diversification?"
@@ -143,24 +124,11 @@ See [TESTING_DEPLOYMENT.md](./TESTING_DEPLOYMENT.md) for comprehensive testing i
 ## 🔧 Tech Stack
 
 - **Framework**: [Mastra](https://mastra.ai/) for AI agent orchestration
-- **Frontend**: Next.js 16 with TypeScript
+- **Frontend**: Next.js with TypeScript & Framer Motion
 - **Styling**: TailwindCSS
 - **AI Model**: OpenAI GPT-4o
-- **Vector Store**: LibSQL with Mastra's built-in embeddings
-- **Animations**: Framer Motion
-
-## 📦 Deployment
-
-### Mastra Cloud (Recommended)
-```bash
-mastra deploy
-```
-
-### Docker
-```bash
-docker build -t berkshire-intelligence .
-docker run -p 3000:3000 -p 4111:4111 berkshire-intelligence
-```
+- **Vector Store**: PostgreSQL with **pgvector**
+- **Memory**: LibSQL (local) / SQLite
 
 ## 📄 License
 
