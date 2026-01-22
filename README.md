@@ -16,15 +16,14 @@ An AI-powered RAG (Retrieval-Augmented Generation) application that intelligentl
 ## 🏗️ System Architecture
 
 ```mermaid
-flowchart TB
-    UI[Chat Interface] --> Agent[Berkshire Agent]
-    Agent --> RAG[RAG Retrieval Tool]
-    RAG --> PG[(PostgreSQL + pgvector)]
-    Agent --> Memory[Memory System]
-    Memory --> LibSQL[(LibSQL Storage)]
-    PDF[Shareholder Letters] --> Ingest[Ingest Pipeline]
-    Ingest --> Embed[OpenAI Embeddings]
-    Embed --> PG
+graph TD
+    User((User)) <--> UI[Next.js Chat Interface]
+    UI <--> Agent[Berkshire AI Agent]
+    Agent <--> DB[(PostgreSQL + pgvector)]
+    Agent <--> Mem[(Conversation Memory)]
+    
+    Docs[Shareholder Letters] --> Ingest[Ingest Pipeline]
+    Ingest --> DB
 ```
 
 ### Data Flow
