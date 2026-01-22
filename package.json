@@ -8,8 +8,10 @@
     "dev": "mastra dev",
     "dev:frontend": "next dev",
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:frontend\"",
-    "build": "mastra build",
+    "build": "next build && mastra build",
     "start": "mastra start",
+    "start:frontend": "next start",
+    "start:all": "concurrently \"npm run start\" \"npm run start:frontend\"",
     "ingest": "npx tsx src/scripts/ingest-documents.ts"
   },
   "keywords": [],
