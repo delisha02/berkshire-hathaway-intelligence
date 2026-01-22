@@ -3,7 +3,7 @@ services:
   - type: web
     name: berkshire-intelligence
     runtime: node
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm run start:all
     envVars:
       - key: NODE_ENV
