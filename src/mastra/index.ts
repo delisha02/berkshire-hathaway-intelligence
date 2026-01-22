@@ -1,17 +1,13 @@
 
 import { Mastra } from '@mastra/core/mastra';
 import { PinoLogger } from '@mastra/loggers';
-import { LibSQLStore } from '@mastra/libsql';
 import { Observability, DefaultExporter, CloudExporter, SensitiveDataFilter } from '@mastra/observability';
 import { berkshireAgent } from './agents/berkshire-agent';
+import { storage } from './storage';
 
 export const mastra = new Mastra({
   agents: { berkshireAgent },
-  storage: new LibSQLStore({
-    id: "mastra-storage",
-    // stores observability, scores, ... into memory storage, if it needs to persist, change to file:../mastra.db
-    url: ":memory:",
-  }),
+  storage,
   logger: new PinoLogger({
     name: 'Mastra',
     level: 'info',

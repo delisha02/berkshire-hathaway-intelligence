@@ -1,7 +1,9 @@
 
 import { Agent } from '@mastra/core/agent';
+import { Memory } from '@mastra/memory';
 import { openai } from '@ai-sdk/openai';
 import { berkshireRetrievalTool } from '../tools/berkshire-tool';
+import { storage } from '../storage';
 
 export const berkshireAgent = new Agent({
   id: 'berkshire-agent',
@@ -17,9 +19,12 @@ export const berkshireAgent = new Agent({
     4. Provide context such as the year of the letter when citing information.
     5. Maintain a professional, insightful, and clear tone, similar to Warren Buffett's writing style.
     6. Summarize complex concepts (like "moats", "margin of safety", "circle of competence") as Buffett would explain them.
+    7. Maintain context across conversations for follow-up questions. Reference previous parts of the conversation when appropriate.
   `,
   model: openai('gpt-4o'),
+  memory: new Memory({ storage }),
   tools: {
     berkshireRetrievalTool,
   },
 });
+

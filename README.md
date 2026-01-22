@@ -4,11 +4,17 @@ Welcome to your new [Mastra](https://mastra.ai/) project! We're excited to see w
 
 ## Getting Started
 
-Start the development server:
+## Getting Started
+
+To start both the **Mastra Backend** and the **Next.js Frontend** simultaneously, run:
 
 ```shell
-npm run dev
+npm run dev:all
 ```
+
+- **Frontend**: [http://localhost:3000](http://localhost:3000)
+- **Mastra Studio**: [http://localhost:4111](http://localhost:4111)
+- **API**: [http://localhost:4111/api](http://localhost:4111/api)
 
 Open [http://localhost:4111](http://localhost:4111) in your browser to access [Mastra Studio](https://mastra.ai/docs/getting-started/studio). It provides an interactive UI for building and testing your agents, along with a REST API that exposes your Mastra application as a local service. This lets you start building without worrying about integration right away.
 
