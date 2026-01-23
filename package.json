@@ -9,7 +9,7 @@
     "dev:frontend": "next dev",
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:frontend\"",
     "build": "next build && mastra build",
-    "start": "mastra start",
+    "start": "PORT=4111 mastra start",
     "start:frontend": "next start",
     "start:all": "concurrently \"npm run start\" \"npm run start:frontend\"",
     "ingest": "npx tsx src/scripts/ingest-documents.ts"
