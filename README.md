@@ -103,18 +103,16 @@ npm run dev:all
 - **Mastra Studio**: [http://localhost:4111](http://localhost:4111)
 
 ## 📁 Project Structure & Implementation Map
- 
-*Mappings to Assignment Requirements:*
- 
-| Component | Requirement | Implementation File |
-|-----------|-------------|---------------------|
-| **Agent** | Task 3.1: Create RAG Agent | `src/mastra/agents/berkshire-agent.ts` |
-| **Tools** | Task 3.2: Implement Tools | `src/mastra/tools/berkshire-tool.ts` |
-| **Memory** | Task 3.1: Persistent Memory | `src/mastra/storage.ts` (LibSQL) |
-| **Vector Store** | Task 2.2: Vector Database | `src/mastra/vector-store.ts` (PgVector) |
-| **Ingestion** | Task 2.1: Document Processing | `src/scripts/ingest-documents.ts` |
-| **Frontend** | Task 4.1: Chat Interface | `src/app/page.tsx` |
-| **Mastra Config** | Task 1.1: Setup Mastra | `src/mastra/index.ts` |
+
+| Component | Implementation File |
+|-----------|---------------------|
+| **Agent** | `src/mastra/agents/berkshire-agent.ts` |
+| **Tools** | `src/mastra/tools/berkshire-tool.ts` |
+| **Memory** | `src/mastra/storage.ts` (LibSQL) |
+| **Vector Store** | `src/mastra/vector-store.ts` (PgVector) |
+| **Ingestion** | `src/scripts/ingest-documents.ts` |
+| **Frontend** | `src/app/page.tsx` |
+| **Mastra Config** | `src/mastra/index.ts` |
 
 ```
 berkshire-hathaway-intelligence/
