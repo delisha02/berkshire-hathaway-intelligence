@@ -20,7 +20,7 @@ export const berkshireRetrievalTool = createTool({
     description: 'Search Berkshire Hathaway shareholder letters for information about Warren Buffett\'s investment philosophy.',
     inputSchema: z.object({
         query: z.string().describe('The search query to find relevant information in shareholder letters.'),
-        topK: z.number().optional().default(10).describe('The number of relevant chunks to retrieve (default: 10).'),
+        topK: z.number().optional().default(40).describe('The number of relevant chunks to retrieve (default: 40).'),
     }),
     outputSchema: z.object({
         results: z.array(z.object({
@@ -45,7 +45,7 @@ export const berkshireRetrievalTool = createTool({
             const results = await pgVector.query({
                 indexName: INDEX_NAME,
                 queryVector: embedding,
-                topK: topK || 10,
+                topK: topK || 40,
             });
             console.log('[berkshire-retrieval] Found', results.length, 'results');
 
