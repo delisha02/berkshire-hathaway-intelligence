@@ -1,3 +1,12 @@
+/**
+ * Mastra Instance Configuration
+ * 
+ * Configures the main Mastra instance with:
+ * - Agents (Berkshire Hathaway Agent)
+ * - Logger (Pino)
+ * - Observability (OpenTelemetry) / Metrics
+ * - Storage (LibSQL)
+ */
 
 import { Mastra } from '@mastra/core/mastra';
 import { PinoLogger } from '@mastra/loggers';

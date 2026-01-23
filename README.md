@@ -37,27 +37,34 @@ graph TD
 
 ## 📦 Deployment (Render)
 
-The application is deployed on **Render** using a multi-service architecture:
+The application is deployed on **Render** using a multi-service architecture defined in `render.yaml`:
 
-### 1. Database Setup
+### 1. Database Setup (Managed PostgreSQL)
 - **Service**: Render Managed PostgreSQL
-- **Extension**: `pgvector` enabled via `CREATE EXTENSION IF NOT EXISTS vector;`
-- **Location**: Singapore (AWS)
+- **Plan**: Free (Sandbox) or Starter
+- **Extension**: `pgvector` enabled via command: `CREATE EXTENSION IF NOT EXISTS vector;`
 
 ### 2. Web Service Configuration
-- **Runtime**: Node.js 22+
+- **Runtime**: Node.js
 - **Build Command**: `npm install --include=dev && npm run build`
 - **Start Command**: `npm run start:all` (Starts both Mastra backend and Next.js frontend)
 - **Environment Variables**:
-  - `DATABASE_URL`: Connection string to PostgreSQL
+  - `DATABASE_URL`: Internal connection string to PostgreSQL
   - `OPENAI_API_KEY`: API key for GPT-4o and Text Embeddings
   - `NODE_ENV`: `production`
 
-### 3. Data Ingestion
-- Documents were ingested into the production database using a local script pointed at the Render database URL:
-  ```bash
-  DATABASE_URL=postgres://... npm run ingest
-  ```
+### 3. Production Data Ingestion (CRITICAL)
+Mastra RAG requires the vector database to be populated. After deploying to Render:
+
+1. Go to your Render Dashboard → Select the Web Service.
+2. Click on **Shell** (SSH).
+3. Run the ingestion script directly on the production server:
+   ```bash
+   npm run ingest
+   ```
+4. This process reads the PDF files and populates your production `berkshire-pgvector` database.
+
+For more details on Mastra deployment, refer to the [Mastra Documentation](https://mastra.ai/docs).
 
 ## 🛠️ Local Installation
 
@@ -95,21 +102,33 @@ npm run dev:all
 - **Frontend**: [http://localhost:3000](http://localhost:3000)
 - **Mastra Studio**: [http://localhost:4111](http://localhost:4111)
 
-## 📁 Project Structure
+## 📁 Project Structure & Implementation Map
+ 
+*Mappings to Assignment Requirements:*
+ 
+| Component | Requirement | Implementation File |
+|-----------|-------------|---------------------|
+| **Agent** | Task 3.1: Create RAG Agent | `src/mastra/agents/berkshire-agent.ts` |
+| **Tools** | Task 3.2: Implement Tools | `src/mastra/tools/berkshire-tool.ts` |
+| **Memory** | Task 3.1: Persistent Memory | `src/mastra/storage.ts` (LibSQL) |
+| **Vector Store** | Task 2.2: Vector Database | `src/mastra/vector-store.ts` (PgVector) |
+| **Ingestion** | Task 2.1: Document Processing | `src/scripts/ingest-documents.ts` |
+| **Frontend** | Task 4.1: Chat Interface | `src/app/page.tsx` |
+| **Mastra Config** | Task 1.1: Setup Mastra | `src/mastra/index.ts` |
 
 ```
 berkshire-hathaway-intelligence/
 ├── src/
 │   ├── app/                    # Next.js frontend
-│   │   ├── page.tsx            # Main chat interface
+│   │   ├── page.tsx            # Main chat interface (Mastra Client)
 │   ├── mastra/
-│   │   ├── agents/             # AI agents
-│   │   ├── tools/              # RAG retrieval tool
-│   │   ├── index.ts            # Mastra configuration
-│   │   ├── storage.ts          # Persistent storage
-│   │   └── vector-store.ts     # Vector database (pgvector)
+│   │   ├── agents/             # Agent definitions & system prompts
+│   │   ├── tools/              # RAG retrieval tools
+│   │   ├── index.ts            # Mastra instance configuration
+│   │   ├── storage.ts          # Memory storage configuration
+│   │   └── vector-store.ts     # Vector database connection
 │   └── scripts/
-│       └── ingest-documents.ts # Document ingestion script
+│       └── ingest-documents.ts # PDF ETL pipeline (MDocument)
 ```
 
 ## 🧪 Testing

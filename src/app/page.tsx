@@ -1,3 +1,14 @@
+/**
+ * Berkshire Hathaway Intelligence - Main Chat Interface
+ * 
+ * A Gemini-inspired chat UI built with Next.js and TailwindCSS.
+ * Features:
+ * - Real-time streaming responses via Mastra Client
+ * - Persistent chat history with sidebar navigation
+ * - Temporal grouping of conversations (Today, Yesterday, etc.)
+ * - Rich markdown rendering with source citations
+ */
+
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -5,7 +16,7 @@ import { useChat, useMastraClient } from "@mastra/react";
 import {
     Send, User, Bot, Loader2, BookOpen,
     Plus, X, MessageSquare, Menu, ChevronLeft,
-    TrendingUp, Building2, Clock, CircleDollarSign, Search
+    TrendingUp, Building2, Clock, CircleDollarSign, Search, Trash2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { clsx, type ClassValue } from "clsx";
@@ -136,6 +147,32 @@ export default function ChatPage() {
             console.error(e);
         } finally {
             setIsLoadingHistory(false);
+        }
+    };
+
+    // Delete thread handler
+    const handleDeleteThread = async (e: React.MouseEvent, threadIdToDelete: string) => {
+        e.stopPropagation(); // Prevent switching to the thread when clicking delete
+        try {
+            // Call the Mastra API to delete the thread
+            await fetch(`/api/memory/threads/${threadIdToDelete}?agentId=berkshire-agent`, {
+                method: 'DELETE',
+            });
+
+            // Remove from local state
+            setAllThreads(prev => prev.filter(t => t.id !== threadIdToDelete));
+
+            // Remove cached title
+            const cachedTitles = JSON.parse(localStorage.getItem('berkshire_thread_titles') || '{}');
+            delete cachedTitles[threadIdToDelete];
+            localStorage.setItem('berkshire_thread_titles', JSON.stringify(cachedTitles));
+
+            // If we deleted the current thread, start a new chat
+            if (threadId === threadIdToDelete) {
+                handleNewChat();
+            }
+        } catch (error) {
+            console.error('Failed to delete thread:', error);
         }
     };
 
@@ -373,7 +410,7 @@ export default function ChatPage() {
                                                 </p>
                                                 <div className="space-y-0.5">
                                                     {threads.map((thread: any, idx: number) => (
-                                                        <motion.button
+                                                        <motion.div
                                                             key={thread.id}
                                                             initial={{ opacity: 0, x: -10 }}
                                                             animate={{ opacity: 1, x: 0 }}
@@ -382,7 +419,7 @@ export default function ChatPage() {
                                                             whileTap={{ scale: 0.98 }}
                                                             onClick={() => handleSwitchThread(thread.id)}
                                                             className={cn(
-                                                                "w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 group",
+                                                                "w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 group cursor-pointer",
                                                                 threadId === thread.id
                                                                     ? "bg-[#d3e3fd] text-[#1a4480] shadow-sm"
                                                                     : "hover:bg-[#e3e8ed] text-[#3c4043]"
@@ -396,6 +433,14 @@ export default function ChatPage() {
                                                                 <p className="text-sm font-medium truncate flex-1">
                                                                     {threadTitles[thread.id] || 'New Conversation'}
                                                                 </p>
+                                                                {/* Delete Button */}
+                                                                <button
+                                                                    onClick={(e) => handleDeleteThread(e, thread.id)}
+                                                                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 rounded transition-all"
+                                                                    title="Delete conversation"
+                                                                >
+                                                                    <Trash2 size={14} className="text-red-500" />
+                                                                </button>
                                                             </div>
                                                             <p className="text-[11px] text-[#5f6368] mt-0.5 ml-6">
                                                                 {new Date(thread.updatedAt).toLocaleTimeString('en-US', {
@@ -404,7 +449,7 @@ export default function ChatPage() {
                                                                     hour12: true
                                                                 })}
                                                             </p>
-                                                        </motion.button>
+                                                        </motion.div>
                                                     ))}
                                                 </div>
                                             </div>
@@ -575,6 +620,42 @@ export default function ChatPage() {
                                             )}
                                         </motion.div>
                                     ))}
+
+                                    {/* Thinking Indicator */}
+                                    {isRunning && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="flex gap-4 justify-start"
+                                        >
+                                            <div className="w-8 h-8 rounded-full bg-[#1a4480] flex items-center justify-center shrink-0">
+                                                <Bot size={16} className="text-white" />
+                                            </div>
+                                            <div className="max-w-[80%] rounded-2xl px-5 py-4 bg-white border border-[#e0e4e8] shadow-sm">
+                                                <div className="flex items-center gap-2 text-[#5f6368]">
+                                                    <div className="flex gap-1">
+                                                        <motion.span
+                                                            animate={{ opacity: [0.4, 1, 0.4] }}
+                                                            transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
+                                                            className="w-2 h-2 bg-[#1a4480] rounded-full"
+                                                        />
+                                                        <motion.span
+                                                            animate={{ opacity: [0.4, 1, 0.4] }}
+                                                            transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+                                                            className="w-2 h-2 bg-[#1a4480] rounded-full"
+                                                        />
+                                                        <motion.span
+                                                            animate={{ opacity: [0.4, 1, 0.4] }}
+                                                            transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
+                                                            className="w-2 h-2 bg-[#1a4480] rounded-full"
+                                                        />
+                                                    </div>
+                                                    <span className="text-sm ml-2">Thinking...</span>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+
                                     <div ref={messagesEndRef} />
                                 </div>
                             )}

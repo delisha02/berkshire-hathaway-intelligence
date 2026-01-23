@@ -1,3 +1,9 @@
+/**
+ * Vector Store Configuration
+ * 
+ * Sets up the connection to PostgreSQL using the pgvector extension.
+ * This is used for storing and retrieving document embeddings for the RAG pipeline.
+ */
 
 import { PgVector } from '@mastra/pg';
 

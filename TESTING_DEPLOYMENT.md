@@ -41,75 +41,53 @@ Monitor in browser DevTools (Network tab):
 
 ## Phase 5.2: Production Preparation
 
-### 1. Deployment Configuration
+### 1. Deployment Configuration (Render)
 
-#### Option A: Mastra Cloud (Recommended)
+*Per the assignment requirements to provide "Deployment notes based on Mastra's deployment options", this project utilizes **Render** as the deployment provider.*
 
-```bash
-# Install Mastra CLI if not installed
-npm install -g mastra
+**Why Render?**
+- Fully compatible with **Mastra's Node.js runtime**.
+- Native support for **PostgreSQL with pgvector** (Essential for Mastra RAG).
+- Supports the multi-service architecture (Backend + Frontend) defined in `render.yaml`.
 
-# Login to Mastra Cloud
-mastra login
+#### Deployment Steps (Infrastructure as Code):
+1. Push code to GitHub.
+2. Go to [Render Dashboard](https://dashboard.render.com/).
+3. Click **New +** → **Blueprint**.
+4. Connect your GitHub repository.
+5. Render will automatically detect `render.yaml` and provision:
+   - **PostgreSQL Database** (with pgvector)
+   - **Web Service** (Mastra + Next.js)
+6. **Manual Action**: Set your `OPENAI_API_KEY` in the Render Dashboard environment variables.
 
-# Deploy
-mastra deploy
-```
-
-#### Option B: Docker Deployment
-
-Create `Dockerfile`:
-```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY . .
-RUN npm run build
-EXPOSE 3000 4111
-CMD ["npm", "start"]
-```
-
-#### Option C: Vercel/Railway
-
-For the Next.js frontend:
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy frontend
-vercel
-```
+For official Mastra deployment guides, see [Mastra Deployment Documentation](https://mastra.ai/docs/deployment).
 
 ### 2. Environment Variables for Production
 
-Create `.env.production`:
-```env
-OPENAI_API_KEY=your-production-key
-DATABASE_URL=your-production-database-url
-NODE_ENV=production
-```
+Ensure these are set in your Render Service settings:
+
+| Variable | Description | Value |
+|----------|-------------|-------|
+| `OPENAI_API_KEY` | Required for Agents & Embeddings | `sk-...` |
+| `DATABASE_URL` | Auto-set by Render Blueprint | `postgres://...` |
+| `NODE_ENV` | Optimization flag | `production` |
 
 ### 3. Monitoring & Observability
 
-Mastra provides built-in observability. Enable in `src/mastra/index.ts`:
+Mastra provides built-in observability features. In `src/mastra/index.ts`, we ensure telemetry is configured:
 
 ```typescript
-import { Mastra } from "@mastra/core";
-import { LibSQLStore } from "@mastra/libsql";
-
+// src/mastra/index.ts
 export const mastra = new Mastra({
-    agents: { berkshireAgent },
-    storage: new LibSQLStore({
-        url: process.env.DATABASE_URL || "file:./mastra.db",
-    }),
-    // Enable observability
+    // ...
     telemetry: {
         enabled: true,
         serviceName: "berkshire-intelligence",
     },
 });
 ```
+
+Check logs in the Render "Logs" tab for real-time agent activity.
 
 ### 4. Error Handling
 
